@@ -88,7 +88,7 @@ export default function App() {
               id="issuer-fp"
               rows={3}
               spellCheck={false}
-              className="w-full resize-y rounded-lg border border-pos-border bg-pos-bg px-3 py-2.5 font-mono text-xs text-pos-text outline-none focus:ring-2 focus:ring-pos-accent"
+              className="w-full resize-y rounded-lg border border-pos-border bg-pos-bg px-3 py-2.5 font-mono text-lg text-pos-text outline-none focus:ring-2 focus:ring-pos-accent"
               placeholder="64-character hex…"
               value={deviceFingerprint}
               onChange={(ev) => setDeviceFingerprint(ev.target.value.trim())}
