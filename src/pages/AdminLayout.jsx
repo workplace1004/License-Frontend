@@ -1,19 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import AdminLogin from './AdminLogin.jsx';
 import { apiUrl, TOKEN_KEY } from '../lib/apiBase.js';
-import {
-  IconIssueLicense,
-  IconUserCircle,
-  IconCog,
-  IconSignOut,
-  IconChevronDown
-} from '../components/AdminIcons.jsx';
+import { IconUserCircle, IconCog, IconSignOut, IconChevronDown } from '../components/AdminIcons.jsx';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) || '');
   const [adminEmail, setAdminEmail] = useState('');
+  const [adminUsername, setAdminUsername] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -21,6 +16,7 @@ export default function AdminLayout() {
     sessionStorage.removeItem(TOKEN_KEY);
     setToken('');
     setAdminEmail('');
+    setAdminUsername('');
     setMenuOpen(false);
   }, []);
 
@@ -31,8 +27,9 @@ export default function AdminLayout() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const j = await res.json().catch(() => ({}));
-      if (res.ok && j.ok && j.admin?.email) {
-        setAdminEmail(j.admin.email);
+      if (res.ok && j.ok && j.admin) {
+        if (j.admin.email) setAdminEmail(j.admin.email);
+        if (j.admin.username != null) setAdminUsername(j.admin.username);
       }
       if (res.status === 401) logout();
     } catch {
@@ -55,30 +52,24 @@ export default function AdminLayout() {
     return () => document.removeEventListener('mousedown', onDoc);
   }, [menuOpen]);
 
-  const onLoggedIn = useCallback((t, email) => {
+  const onLoggedIn = useCallback((t, profile) => {
     setToken(t);
-    setAdminEmail(email || '');
+    setAdminEmail(profile?.email || '');
+    setAdminUsername(profile?.username || '');
   }, []);
 
   if (!token) {
     return <AdminLogin onLoggedIn={onLoggedIn} />;
   }
 
+  const headerLabel = adminUsername || adminEmail || 'Admin';
+
   return (
     <div className="min-h-screen px-4 py-10">
-      <div className="mx-auto w-full max-w-5xl space-y-6">
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold text-pos-text">License admin</h1>
           <div className="flex items-center gap-2">
-            <Link
-              to="/"
-              title="Issue POS license"
-              aria-label="Issue POS license"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-pos-border text-pos-text hover:bg-pos-bg"
-            >
-              <IconIssueLicense className="h-5 w-5" />
-            </Link>
-
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -90,7 +81,7 @@ export default function AdminLayout() {
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-pos-bg text-pos-accent">
                   <IconUserCircle className="h-6 w-6" />
                 </span>
-                <span className="max-w-[160px] truncate sm:max-w-[220px]">{adminEmail || 'Admin'}</span>
+                <span className="max-w-[160px] truncate sm:max-w-[220px]">{headerLabel}</span>
                 <IconChevronDown className={`h-4 w-4 shrink-0 text-pos-muted transition ${menuOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -135,6 +126,8 @@ export default function AdminLayout() {
             setToken,
             adminEmail,
             setAdminEmail,
+            adminUsername,
+            setAdminUsername,
             logout
           }}
         />

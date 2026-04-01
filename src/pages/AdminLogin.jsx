@@ -56,7 +56,10 @@ export default function AdminLogin({ onLoggedIn }) {
           return;
         }
         sessionStorage.setItem(TOKEN_KEY, j.token);
-        onLoggedIn(j.token, j.email || em);
+        onLoggedIn(j.token, {
+          email: j.email || em,
+          username: j.username || 'Administrator'
+        });
         setLoginPassword('');
       } catch {
         setLoginError('Could not reach the license API.');

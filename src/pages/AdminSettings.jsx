@@ -28,8 +28,8 @@ function EyeIcon({ open }) {
 }
 
 export default function AdminSettings() {
-  const { token, setToken, adminEmail, setAdminEmail, logout } = useOutletContext();
-  const [email, setEmail] = useState('');
+  const { token, setToken, adminEmail, adminUsername, setAdminUsername, logout } = useOutletContext();
+  const [username, setUsername] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -41,22 +41,24 @@ export default function AdminSettings() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setEmail(adminEmail || '');
-  }, [adminEmail]);
+    setUsername(adminUsername || '');
+  }, [adminUsername]);
 
   const onSubmit = useCallback(
     async (e) => {
       e.preventDefault();
       setError(null);
       setMessage(null);
-      const em = String(email).trim().toLowerCase();
+      const un = String(username).trim();
       const np = String(newPassword);
       const cpw = String(currentPassword);
       const cfm = String(confirmPassword);
 
-      if (!em || !em.includes('@')) {
-        setError('Enter a valid email (username).');
-        return;
+      if (un !== adminUsername) {
+        if (!un || un.length > 80) {
+          setError('Username is required (max 80 characters).');
+          return;
+        }
       }
 
       if (np || cfm || cpw) {
@@ -74,14 +76,15 @@ export default function AdminSettings() {
         }
       }
 
-      const body = { email: em };
+      const body = {};
+      if (un !== adminUsername) body.username = un;
       if (np) {
         body.currentPassword = cpw;
         body.newPassword = np;
       }
 
-      if (em === adminEmail && !np) {
-        setError('Change your email or enter a new password.');
+      if (Object.keys(body).length === 0) {
+        setError('No changes to save.');
         return;
       }
 
@@ -105,8 +108,8 @@ export default function AdminSettings() {
           sessionStorage.setItem(TOKEN_KEY, j.token);
           setToken(j.token);
         }
-        if (j.admin?.email) {
-          setAdminEmail(j.admin.email);
+        if (j.admin?.username != null) {
+          setAdminUsername(j.admin.username);
         }
         setMessage('Saved.');
         setCurrentPassword('');
@@ -119,14 +122,14 @@ export default function AdminSettings() {
       }
     },
     [
-      email,
-      adminEmail,
+      username,
+      adminUsername,
       newPassword,
       confirmPassword,
       currentPassword,
       token,
       setToken,
-      setAdminEmail,
+      setAdminUsername,
       logout
     ]
   );
@@ -149,15 +152,31 @@ export default function AdminSettings() {
         <form className="space-y-5" onSubmit={onSubmit}>
           <div>
             <label className="mb-1 block text-sm font-medium text-pos-text" htmlFor="settings-email">
-              Username (email)
+              Email (login)
             </label>
             <input
               id="settings-email"
               type="email"
-              autoComplete="email"
+              readOnly
+              tabIndex={0}
+              className="w-full cursor-default rounded-lg border border-pos-border bg-pos-bg/70 px-3 py-2.5 text-pos-muted outline-none"
+              value={adminEmail}
+            />
+            <p className="mt-1 text-xs text-pos-muted">Email cannot be changed here. It is used only to sign in.</p>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-pos-text" htmlFor="settings-username">
+              Username
+            </label>
+            <input
+              id="settings-username"
+              type="text"
+              autoComplete="nickname"
+              maxLength={80}
               className="w-full rounded-lg border border-pos-border bg-pos-bg px-3 py-2.5 text-pos-text outline-none focus:ring-2 focus:ring-pos-accent"
-              value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
+              value={username}
+              onChange={(ev) => setUsername(ev.target.value)}
               disabled={busy}
             />
           </div>
