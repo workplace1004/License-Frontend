@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { downloadLicenseKeyFileFromBase64 } from '../licenseFileFormat.js';
 import { apiUrl, getStoredAdminToken } from '../lib/apiBase.js';
 import BirthdayPicker from '../components/BirthdayPicker.jsx';
@@ -51,28 +51,40 @@ export default function IssuePage() {
     const bday = String(birthday).trim();
     const fp = String(deviceFingerprint).trim();
     if (!em || !em.includes('@')) {
-      setError('Enter a valid email address.');
+      const msg = 'Enter a valid email address.';
+      setError(msg);
+      toast.error(msg);
       return;
     }
     if (!fn) {
-      setError('Enter the customer full name.');
+      const msg = 'Enter the customer full name.';
+      setError(msg);
+      toast.error(msg);
       return;
     }
     if (!bday || !/^\d{4}-\d{2}-\d{2}$/.test(bday)) {
-      setError('Select a valid birthday.');
+      const msg = 'Select a valid birthday.';
+      setError(msg);
+      toast.error(msg);
       return;
     }
     const phoneCheck = validatePhoneField(ph);
     if (!phoneCheck.ok) {
       setError(phoneCheck.message);
+      toast.error(phoneCheck.message);
       return;
     }
     if (!addr) {
-      setError('Enter an address.');
+      const msg = 'Enter an address.';
+      setError(msg);
+      toast.error(msg);
       return;
     }
     if (!/^[a-f0-9]{64}$/i.test(fp)) {
-      setError('Device ID must be a 64-character hex string (copy from the POS license screen).');
+      const msg =
+        'Device ID must be a 64-character hex string (copy from the POS license screen).';
+      setError(msg);
+      toast.error(msg);
       return;
     }
     setBusy(true);
@@ -94,17 +106,26 @@ export default function IssuePage() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok || !j.ok) {
-        setError(j.message || j.error || `Request failed (${res.status})`);
+        const msg = j.message || j.error || `Request failed (${res.status})`;
+        setError(msg);
+        toast.error(msg);
         return;
       }
       if (!j.licenseFileBase64 || typeof j.licenseFileBase64 !== 'string') {
-        setError('Server did not return an encrypted license file. Set LICENSE_FILE_ENCRYPTION_KEY on license-server.');
+        const msg =
+          'Server did not return an encrypted license file. Set LICENSE_FILE_ENCRYPTION_KEY on license-server.';
+        setError(msg);
+        toast.error(msg);
         return;
       }
       downloadLicenseKeyFileFromBase64(j.licenseFileBase64);
       setSuccessLine(`Downloaded encrypted file "licenseKey" — send it to the customer for POS activation.`);
+      toast.success('License created — licenseKey file downloaded. Send it to the customer for POS activation.');
     } catch {
-      setError('Could not reach the issuer proxy. Run npm run dev (with license-server on 5050) or check the network.');
+      const msg =
+        'Could not reach the issuer proxy. Run npm run dev (with license-server on 5050) or check the network.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
@@ -213,12 +234,6 @@ export default function IssuePage() {
             {busy ? 'Creating…' : 'Create license'}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-sm text-pos-muted">
-          <Link to="/admin" className="text-pos-accent underline-offset-2 hover:underline">
-            Admin login
-          </Link>
-        </p>
       </div>
     </div>
   );
