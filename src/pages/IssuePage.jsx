@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { downloadLicenseKeyFileFromBase64 } from '../licenseFileFormat.js';
-import { apiUrl, getStoredAdminToken } from '../lib/apiBase.js';
+import { apiUrl } from '../lib/apiBase.js';
 import BirthdayPicker from '../components/BirthdayPicker.jsx';
 import AddressSuggestInput from '../components/AddressSuggestInput.jsx';
 
@@ -89,12 +89,9 @@ export default function IssuePage() {
     }
     setBusy(true);
     try {
-      const headers = { 'Content-Type': 'application/json' };
-      const token = getStoredAdminToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
       const res = await fetch(apiUrl('/license/create'), {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: em,
           fullName: fn,
