@@ -46,6 +46,8 @@ async function proxyJson(method, apiPath, req, res) {
 
 app.post('/license/create', (req, res) => proxyJson('POST', '/license/create', req, res));
 app.post('/admin/login', (req, res) => proxyJson('POST', '/admin/login', req, res));
+app.get('/admin/me', (req, res) => proxyJson('GET', '/admin/me', req, res));
+app.patch('/admin/me', (req, res) => proxyJson('PATCH', '/admin/me', req, res));
 app.get('/admin/licenses', (req, res) => proxyJson('GET', '/admin/licenses', req, res));
 
 app.listen(PORT, '127.0.0.1', () => {
