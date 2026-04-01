@@ -4,6 +4,7 @@ import { apiUrl } from '../lib/apiBase.js';
 import { IconSearch, IconRefresh } from '../components/AdminIcons.jsx';
 
 const PAGE_SIZE = 10;
+const SKELETON_ROWS = 7;
 
 function NoDataIllustration({ className = 'h-24 w-24 text-pos-muted/50' }) {
   return (
@@ -26,6 +27,67 @@ function NoDataIllustration({ className = 'h-24 w-24 text-pos-muted/50' }) {
         opacity="0.35"
       />
     </svg>
+  );
+}
+
+function SkeletonCell({ width = 'w-full' }) {
+  return <span className={`block h-3.5 rounded bg-pos-border/60 ${width}`} />;
+}
+
+function LicensesTableSkeleton() {
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px] border-collapse text-left text-sm text-pos-text">
+          <thead>
+            <tr className="border-b border-pos-border text-pos-muted">
+              <th className="py-2 pr-3 font-medium">Full name</th>
+              <th className="py-2 pr-3 font-medium">Email</th>
+              <th className="py-2 pr-3 font-medium">Phone</th>
+              <th className="py-2 pr-3 font-medium">Birthday</th>
+              <th className="py-2 pr-3 font-medium">Address</th>
+              <th className="py-2 pr-3 font-medium">License key</th>
+              <th className="py-2 font-medium">Created</th>
+            </tr>
+          </thead>
+          <tbody className="animate-pulse">
+            {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+              <tr key={`skeleton-row-${i}`} className="border-b border-pos-border/60">
+                <td className="max-w-[140px] py-3 pr-3 align-top">
+                  <SkeletonCell width="w-28" />
+                </td>
+                <td className="py-3 pr-3 align-top">
+                  <SkeletonCell width="w-40" />
+                </td>
+                <td className="py-3 pr-3 align-top whitespace-nowrap">
+                  <SkeletonCell width="w-24" />
+                </td>
+                <td className="py-3 pr-3 align-top whitespace-nowrap">
+                  <SkeletonCell width="w-20" />
+                </td>
+                <td className="max-w-[180px] py-3 pr-3 align-top">
+                  <SkeletonCell width="w-full" />
+                </td>
+                <td className="py-3 pr-3 align-top whitespace-nowrap">
+                  <SkeletonCell width="w-36" />
+                </td>
+                <td className="py-3 align-top whitespace-nowrap">
+                  <SkeletonCell width="w-28" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-pos-border pt-4">
+        <SkeletonCell width="w-44" />
+        <div className="flex items-center gap-2">
+          <span className="h-8 w-24 rounded border border-pos-border bg-pos-bg/70" />
+          <SkeletonCell width="w-24" />
+          <span className="h-8 w-20 rounded border border-pos-border bg-pos-bg/70" />
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -138,7 +200,7 @@ export default function AdminDashboard() {
       {licensesError ? <p className="mb-3 text-sm text-red-400">{licensesError}</p> : null}
 
       {showInitialLoading ? (
-        <p className="py-12 text-center text-sm text-pos-muted">Loading licenses…</p>
+        <LicensesTableSkeleton />
       ) : emptyFromApi ? (
         <div className="flex flex-col items-center justify-center gap-3 py-14 text-center">
           <NoDataIllustration />
