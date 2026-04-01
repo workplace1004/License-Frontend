@@ -15,7 +15,7 @@ export function normalizeNominatimResults(json) {
 
 export function addressSuggestRequestUrl(query) {
   const base = (import.meta.env.VITE_ADDRESS_SUGGEST_URL || '').trim().replace(/\/$/, '');
-  const path = base || '/issuer-geocode/suggest';
+  const path = base || (import.meta.env.DEV ? '/issuer-geocode/suggest' : '/api/address-suggest');
   const sep = path.includes('?') ? '&' : '?';
   return `${path}${sep}q=${encodeURIComponent(query)}`;
 }
