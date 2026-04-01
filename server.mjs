@@ -10,15 +10,26 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '64kb' }));
 
-app.post('/license/create', async (req, res) => {
+function upstreamHeaders(req) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (req.headers.authorization) {
+    headers.Authorization = req.headers.authorization;
+  } else if (SECRET) {
+    headers.Authorization = `Bearer ${SECRET}`;
+  }
+  return headers;
+}
+
+async function proxyJson(method, apiPath, req, res) {
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (SECRET) headers.Authorization = `Bearer ${SECRET}`;
-    const r = await fetch(`${LICENSE_API}/license/create`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(req.body ?? {})
-    });
+    const init = {
+      method,
+      headers: upstreamHeaders(req)
+    };
+    if (method !== 'GET' && req.body != null) {
+      init.body = JSON.stringify(req.body);
+    }
+    const r = await fetch(`${LICENSE_API}${apiPath}`, init);
     const text = await r.text();
     let j;
     try {
@@ -28,10 +39,14 @@ app.post('/license/create', async (req, res) => {
     }
     res.status(r.status).json(j);
   } catch (e) {
-    console.error('[license issuer proxy]', e);
+    console.error('[license issuer proxy]', apiPath, e);
     res.status(502).json({ ok: false, error: 'proxy_error', message: 'Cannot reach license API.' });
   }
-});
+}
+
+app.post('/license/create', (req, res) => proxyJson('POST', '/license/create', req, res));
+app.post('/admin/login', (req, res) => proxyJson('POST', '/admin/login', req, res));
+app.get('/admin/licenses', (req, res) => proxyJson('GET', '/admin/licenses', req, res));
 
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`License issuer proxy → ${LICENSE_API} (http://127.0.0.1:${PORT})`);
